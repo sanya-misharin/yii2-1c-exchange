@@ -8,6 +8,7 @@ use carono\exchange1c\ExchangeModule;
 use carono\exchange1c\helpers\ByteHelper;
 use carono\exchange1c\helpers\NodeHelper;
 use carono\exchange1c\helpers\SerializeHelper;
+use carono\exchange1c\interfaces\CustomDocumentInterface;
 use carono\exchange1c\interfaces\DocumentInterface;
 use carono\exchange1c\interfaces\OfferInterface;
 use carono\exchange1c\interfaces\ProductInterface;
@@ -45,6 +46,7 @@ class ApiController extends Controller
     const EVENT_AFTER_OFFER_SYNC = 'afterOfferSync';
     const EVENT_AFTER_FINISH_UPLOAD_FILE = 'afterFinishUploadFile';
     const EVENT_AFTER_EXPORT_ORDERS = 'afterExportOrders';
+    const EVENT_AFTER_EXPORT_CUSTOM_DOCUMENTS = 'afterExportCustomDocuments';
 
     protected $_ids;
 
@@ -314,11 +316,7 @@ class ApiController extends Controller
          */
         $response = Yii::$app->response;
         $response->format = Response::FORMAT_RAW;
-
-        if ($this->module->encodeQueryResponse) {
-            $response->getHeaders()
-                ->set('Content-Type', 'application/xml; charset=windows-1251');
-        }
+        $response->getHeaders()->set('Content-Type', 'application/xml; charset=' . $this->module->exchangeDocumentEncode);
 
         $root = new \SimpleXMLElement('<КоммерческаяИнформация></КоммерческаяИнформация>');
         $root->addAttribute('ВерсияСхемы', $this->commerceMLVersion);
@@ -331,6 +329,19 @@ class ApiController extends Controller
                 $ids[] = $order->getPrimaryKey();
                 NodeHelper::appendNode($root, SerializeHelper::serializeDocument($order));
             }
+
+            $customDocumentClasses = $this->module->customDocumentClasses;
+            foreach ($customDocumentClasses as $customDocumentClass) {
+                $customDocumentIds = [];
+
+                foreach ($customDocumentClass::findCustomDocuments1c() as $customDocument) {
+                    $customDocumentIds[] = $customDocument->getPrimaryKey();
+                    NodeHelper::appendNode($root, SerializeHelper::serializeCustomDocument($customDocument));
+                }
+
+                $this->afterExportCustomDocuments($customDocumentIds, $customDocumentClass);
+            }
+
             if ($this->module->debug) {
                 $xml = $root->asXML();
 
@@ -634,5 +645,10 @@ class ApiController extends Controller
     public function afterExportOrders($ids)
     {
         $this->module->trigger(self::EVENT_AFTER_EXPORT_ORDERS, new ExchangeEvent(['ids' => $ids]));
+    }
+
+    public function afterExportCustomDocuments(array $customDocumentIds, CustomDocumentInterface $customDocumentClass)
+    {
+        $this->module->trigger(self::EVENT_AFTER_EXPORT_CUSTOM_DOCUMENTS, new ExchangeEvent(['ids' => $customDocumentIds, 'ml' => $customDocumentClass]));
     }
 }
