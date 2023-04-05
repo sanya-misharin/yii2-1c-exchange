@@ -316,7 +316,10 @@ class ApiController extends Controller
          */
         $response = Yii::$app->response;
         $response->format = Response::FORMAT_RAW;
-        $response->getHeaders()->set('Content-Type', 'application/xml; charset=' . $this->module->exchangeDocumentEncode);
+
+        if ($this->module->encodeQueryResponse) {
+            $response->getHeaders()->set('Content-Type', 'application/xml; charset=' . $this->module->exchangeDocumentEncode);
+        }
 
         $root = new \SimpleXMLElement('<КоммерческаяИнформация></КоммерческаяИнформация>');
         $root->addAttribute('ВерсияСхемы', $this->commerceMLVersion);
