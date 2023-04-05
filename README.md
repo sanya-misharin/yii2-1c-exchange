@@ -32,6 +32,8 @@
 		* [getOffers1c](#28)
 		* [getRequisites1c](#29)
 		* [getPartner1c](#30)
+    * [customDocumentClasses Массив кастомных документов](#40)
+        * [findCustomDocuments1c](#41)
 	* [warehouseClass Модель склада](#21)
 	* [Общие методы](#32)
 		* [getExportFields1c](#33)
@@ -97,6 +99,14 @@
 	<td>null
 	</td>
 	<td>Класс для документа (заказа)
+	</td>
+</tr>
+<tr>
+	<td>customDocumentClasses
+	</td>
+	<td>null
+	</td>
+	<td>Массив классов для кастомных документов
 	</td>
 </tr>
 <tr>
@@ -803,6 +813,41 @@ class Offer extends BaseOffer implements OfferInterface {
     }
 </pre>
 
+<a name="40">customDocumentClasses Массив моделей кастомных документов</a>
+=
+
+<p>Документы кастомных доработок для обмена 1С, может быть чем угодно<h2>Настройка</h2><p>Добавляем в настройки модуля вашу модель для предложения <strong>'customDocumentClasses' =&gt; [\app\models\CustomDocument::class]</strong>
+</p><h2>
+<pre style="font-size: 12.6px;">[
+    'exchange' =&gt; [
+        'class' =&gt; \carono\exchange1c\ExchangeModule::class,
+        'groupClass' =&gt; \app\models\Group::class,
+        'productClass' =&gt; \app\models\Product::class,
+        'offerClass' =&gt; \app\models\Offer::class,
+        'partnerClass' =&gt; \app\models\Partner::class, 
+        'customDocumentClasses' =&gt; [\app\models\CustomDocument::class], 
+    ]
+]
+</pre>
+<table style="width: 1466px;">
+<tbody>
+<tr>
+</tr>
+</tbody>
+</table></h2><h2>Интерфейсы</h2><p>В вашей модели имплементируем интерфейс <strong>carono\exchange1c\interfaces\CustomDocumentInterface</strong>
+
+<a name="41">findCustomDocuments1c</a>
+=
+
+<h2>public static function findCustomDocuments1c()</h2><p>Получение всех подготовленных кастомных документов. В этой функции необходимо возвращать все кастомные документы, которые готовы для импорта в 1С.
+<pre>    /**    
+     * @return CustomDocumentInterface[]
+     */
+    public static function findCustomDocuments1c()
+    {
+        return self::find()-&gt;all();
+    }
+</pre>
 
 <a name="21">warehouseClass Модель склада</a>
 =
