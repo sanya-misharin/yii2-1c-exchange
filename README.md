@@ -813,7 +813,7 @@ class Offer extends BaseOffer implements OfferInterface {
     }
 </pre>
 
-<a name="40">customDocumentClasses Массив моделей кастомных документов</a>
+<a name="40">customDocumentClasses Массив кастомных документов</a>
 =
 
 <p>Документы кастомных доработок для обмена 1С, может быть чем угодно<h2>Настройка</h2><p>Добавляем в настройки модуля вашу модель для предложения <strong>'customDocumentClasses' =&gt; [\app\models\CustomDocument::class]</strong>
