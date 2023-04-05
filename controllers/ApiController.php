@@ -650,7 +650,7 @@ class ApiController extends Controller
         $this->module->trigger(self::EVENT_AFTER_EXPORT_ORDERS, new ExchangeEvent(['ids' => $ids]));
     }
 
-    public function afterExportCustomDocuments(array $customDocumentIds, CustomDocumentInterface $customDocumentClass)
+    public function afterExportCustomDocuments(array $customDocumentIds, string $customDocumentClass)
     {
         $this->module->trigger(self::EVENT_AFTER_EXPORT_CUSTOM_DOCUMENTS, new ExchangeEvent(['ids' => $customDocumentIds, 'ml' => $customDocumentClass]));
     }
