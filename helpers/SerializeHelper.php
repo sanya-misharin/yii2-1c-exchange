@@ -4,6 +4,7 @@
 namespace carono\exchange1c\helpers;
 
 
+use carono\exchange1c\interfaces\CustomDocumentInterface;
 use carono\exchange1c\interfaces\DocumentInterface;
 use carono\exchange1c\interfaces\OfferInterface;
 use carono\exchange1c\interfaces\PartnerInterface;
@@ -53,6 +54,18 @@ class SerializeHelper
             $productNode = self::serializeOffer($offer, $document);
             NodeHelper::appendNode($products, $productNode);
         }
+        return $documentNode;
+    }
+
+    /**
+     * @param CustomDocumentInterface $document
+     * @return \SimpleXMLElement
+     */
+    public static function serializeCustomDocument(CustomDocumentInterface $document)
+    {
+        $documentNode = new \SimpleXMLElement('<Документ></Документ>');
+        self::addFields($documentNode, $document, $document->getExportFields1c());
+
         return $documentNode;
     }
 

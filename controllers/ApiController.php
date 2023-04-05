@@ -8,6 +8,7 @@ use carono\exchange1c\ExchangeModule;
 use carono\exchange1c\helpers\ByteHelper;
 use carono\exchange1c\helpers\NodeHelper;
 use carono\exchange1c\helpers\SerializeHelper;
+use carono\exchange1c\interfaces\CustomDocumentInterface;
 use carono\exchange1c\interfaces\DocumentInterface;
 use carono\exchange1c\interfaces\OfferInterface;
 use carono\exchange1c\interfaces\ProductInterface;
@@ -45,6 +46,7 @@ class ApiController extends Controller
     const EVENT_AFTER_OFFER_SYNC = 'afterOfferSync';
     const EVENT_AFTER_FINISH_UPLOAD_FILE = 'afterFinishUploadFile';
     const EVENT_AFTER_EXPORT_ORDERS = 'afterExportOrders';
+    const EVENT_AFTER_EXPORT_CUSTOM_DOCUMENTS = 'afterExportCustomDocuments';
 
     protected $_ids;
 
@@ -63,12 +65,18 @@ class ApiController extends Controller
      */
     public function behaviors()
     {
-        return array_merge(parent::behaviors(), [
-            'bom' => [
-                'class' => BomBehavior::class,
-                'only' => ['query'],
-            ],
-        ]);
+        $behaviors = parent::behaviors();
+
+        if ($this->module->encodeQueryResponse) {
+            $behaviors = array_merge($behaviors, [
+                BomBehavior::class => [
+                    'class' => BomBehavior::class,
+                    'only' => ['query'],
+                ],
+            ]);
+        }
+
+        return $behaviors;
     }
 
     /**
@@ -308,7 +316,10 @@ class ApiController extends Controller
          */
         $response = Yii::$app->response;
         $response->format = Response::FORMAT_RAW;
-        $response->getHeaders()->set('Content-Type', 'application/xml; charset=windows-1251');
+
+        if ($this->module->encodeQueryResponse) {
+            $response->getHeaders()->set('Content-Type', 'application/xml; charset=' . $this->module->exchangeDocumentEncode);
+        }
 
         $root = new \SimpleXMLElement('<КоммерческаяИнформация></КоммерческаяИнформация>');
         $root->addAttribute('ВерсияСхемы', $this->commerceMLVersion);
@@ -321,9 +332,26 @@ class ApiController extends Controller
                 $ids[] = $order->getPrimaryKey();
                 NodeHelper::appendNode($root, SerializeHelper::serializeDocument($order));
             }
+
+            $customDocumentClasses = $this->module->customDocumentClasses;
+            foreach ($customDocumentClasses as $customDocumentClass) {
+                $customDocumentIds = [];
+
+                foreach ($customDocumentClass::findCustomDocuments1c() as $customDocument) {
+                    $customDocumentIds[] = $customDocument->getPrimaryKey();
+                    NodeHelper::appendNode($root, SerializeHelper::serializeCustomDocument($customDocument));
+                }
+
+                $this->afterExportCustomDocuments($customDocumentIds, $customDocumentClass);
+            }
+
             if ($this->module->debug) {
                 $xml = $root->asXML();
-                $xml = html_entity_decode($xml, ENT_NOQUOTES, 'UTF-8');
+
+                if ($this->module->encodeQueryResponse) {
+                    $xml = html_entity_decode($xml, ENT_NOQUOTES, 'UTF-8');
+                }
+
                 file_put_contents($this->module->getTmpDir() . '/query.xml', $xml);
             }
         }
@@ -620,5 +648,10 @@ class ApiController extends Controller
     public function afterExportOrders($ids)
     {
         $this->module->trigger(self::EVENT_AFTER_EXPORT_ORDERS, new ExchangeEvent(['ids' => $ids]));
+    }
+
+    public function afterExportCustomDocuments(array $customDocumentIds, string $customDocumentClass)
+    {
+        $this->module->trigger(self::EVENT_AFTER_EXPORT_CUSTOM_DOCUMENTS, new ExchangeEvent(['ids' => $customDocumentIds, 'ml' => $customDocumentClass]));
     }
 }

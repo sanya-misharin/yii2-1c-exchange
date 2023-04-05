@@ -54,6 +54,12 @@ class ExchangeModule extends \yii\base\Module
      */
     public $warehouseClass;
     /**
+     * Модели кастомных документов
+     *
+     * @var \carono\exchange1c\interfaces\CustomDocumentInterface[]
+     */
+    public $customDocumentClasses = [];
+    /**
      * Обмен документами
      *
      * @var bool
@@ -115,6 +121,18 @@ class ExchangeModule extends \yii\base\Module
      * @var \Closure
      */
     public $auth;
+
+    /**
+     * @var bool
+     */
+    public $encodeQueryResponse = true;
+
+    /**
+     * @var string
+     * Кодировка XML для обмена документами, старые 1С работают с windows-1251, новые конфигурации могут работать с UTF-8
+     * Если проблема с кодировкой, то при обмене, 1С может писать ошибку "Не удалось получить файл обмена"
+     */
+    public $exchangeDocumentEncode = 'windows-1251';
 
     private function loadRedactorModule()
     {
