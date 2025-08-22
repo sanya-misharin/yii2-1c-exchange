@@ -349,7 +349,7 @@ class ApiController extends Controller
                 $xml = $root->asXML();
 
                 if ($this->module->encodeQueryResponse) {
-                    $xml = html_entity_decode($xml, ENT_NOQUOTES, 'UTF-8');
+                    $xml = html_entity_decode($xml, ENT_NOQUOTES | ENT_HTML5, 'UTF-8');
                 }
 
                 file_put_contents($this->module->getTmpDir() . '/query.xml', $xml);
