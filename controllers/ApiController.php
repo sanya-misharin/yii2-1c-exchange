@@ -8,7 +8,6 @@ use carono\exchange1c\ExchangeModule;
 use carono\exchange1c\helpers\ByteHelper;
 use carono\exchange1c\helpers\NodeHelper;
 use carono\exchange1c\helpers\SerializeHelper;
-use carono\exchange1c\interfaces\CustomDocumentInterface;
 use carono\exchange1c\interfaces\DocumentInterface;
 use carono\exchange1c\interfaces\OfferInterface;
 use carono\exchange1c\interfaces\ProductInterface;
@@ -17,14 +16,8 @@ use yii\db\ActiveRecord;
 use yii\helpers\FileHelper;
 use yii\web\Response;
 use Zenwalker\CommerceML\CommerceML;
-use Zenwalker\CommerceML\Model\Classifier;
-use Zenwalker\CommerceML\Model\Group;
-use Zenwalker\CommerceML\Model\Image;
 use Zenwalker\CommerceML\Model\Offer;
 use Zenwalker\CommerceML\Model\Product;
-use Zenwalker\CommerceML\Model\PropertyCollection;
-use Zenwalker\CommerceML\Model\Simple;
-use Zenwalker\CommerceML\Model\RequisiteCollection;
 
 /**
  * Default controller for the `api` module
@@ -324,8 +317,8 @@ class ApiController extends Controller
         $root = new \SimpleXMLElement('<КоммерческаяИнформация></КоммерческаяИнформация>');
         $root->addAttribute('ВерсияСхемы', $this->commerceMLVersion);
         $root->addAttribute('ДатаФормирования', date('Y-m-d\TH:i:s'));
-
         $ids = [];
+
         if ($this->module->exchangeDocuments) {
             $document = $this->module->documentClass;
             foreach ($document::findDocuments1c() as $order) {
@@ -349,13 +342,15 @@ class ApiController extends Controller
                 $xml = $root->asXML();
 
                 if ($this->module->encodeQueryResponse) {
-                    $xml = html_entity_decode($xml, ENT_NOQUOTES | ENT_HTML5, 'UTF-8');
+                    $xml = html_entity_decode($xml, ENT_NOQUOTES, 'UTF-8');
                 }
 
                 file_put_contents($this->module->getTmpDir() . '/query.xml', $xml);
             }
         }
+
         $this->afterExportOrders($ids);
+
         return $root->asXML();
     }
 
