@@ -41,7 +41,7 @@ class NodeHelper
         } elseif ($attribute instanceof \SimpleXMLElement) {
             return self::appendNode($xml, $attribute);
         } else {
-            return $xml->addChild($field1c, $attribute);
+            return $xml->addChild($field1c, htmlspecialchars($attribute, ENT_XML1, 'UTF-8'));
         }
     }
 
