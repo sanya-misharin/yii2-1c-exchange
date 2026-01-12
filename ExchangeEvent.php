@@ -12,4 +12,5 @@ class ExchangeEvent extends Event
     public $ml;
     public $ids = [];
     public $filePath;
+    public $documentsFoundDateTime;
 }

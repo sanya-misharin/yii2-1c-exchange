@@ -318,8 +318,10 @@ class ApiController extends Controller
         $root->addAttribute('ВерсияСхемы', $this->commerceMLVersion);
         $root->addAttribute('ДатаФормирования', date('Y-m-d\TH:i:s'));
         $ids = [];
+        $documentsFoundDateTime = null;
 
         if ($this->module->exchangeDocuments) {
+            $documentsFoundDateTime = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
             $document = $this->module->documentClass;
             foreach ($document::findDocuments1c() as $order) {
                 $ids[] = $order->getPrimaryKey();
@@ -349,7 +351,7 @@ class ApiController extends Controller
             }
         }
 
-        $this->afterExportOrders($ids);
+        $this->afterExportOrders($ids, $documentsFoundDateTime);
 
         return $root->asXML();
     }
@@ -639,10 +641,11 @@ class ApiController extends Controller
 
     /**
      * @param $ids
+     * @param $documentsFoundDateTime
      */
-    public function afterExportOrders($ids)
+    public function afterExportOrders($ids, $documentsFoundDateTime)
     {
-        $this->module->trigger(self::EVENT_AFTER_EXPORT_ORDERS, new ExchangeEvent(['ids' => $ids]));
+        $this->module->trigger(self::EVENT_AFTER_EXPORT_ORDERS, new ExchangeEvent(['ids' => $ids, 'documentsFoundDateTime' => $documentsFoundDateTime]));
     }
 
     public function afterExportCustomDocuments(array $customDocumentIds, string $customDocumentClass)
